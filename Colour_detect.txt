@@ -1,0 +1,48 @@
+import pigpio
+from time import sleep
+
+# Initialize pigpio
+pi = pigpio.pi()
+if not pi.connected:
+    print("Failed to connect to pigpio daemon")
+    exit()
+
+# Define servo pins
+SERVO_PIN_1 = 12  # GPIO 12 for Servo 1 (Physical Pin 32)
+SERVO_PIN_2 = 13  # GPIO 13 for Servo 2 (Physical Pin 33)
+
+# Set servo parameters
+CENTER_PULSE_WIDTH = 1500  # in microseconds (Center position, 0 degrees)
+CW_PULSE_WIDTH = 2300      # in microseconds (Clockwise, +90 degrees)
+CCW_PULSE_WIDTH = 600      # in microseconds (Counterclockwise, -90 degrees)
+
+# Set pin modes for both servos
+pi.set_mode(SERVO_PIN_1, pigpio.OUTPUT)
+pi.set_mode(SERVO_PIN_2, pigpio.OUTPUT)
+
+try:
+    while True:
+        # Move Servo 1 clockwise to +90 degrees, Servo 2 counterclockwise to -90 degrees
+        pi.set_servo_pulsewidth(SERVO_PIN_1, CW_PULSE_WIDTH)  # Servo 1 to +90 degrees
+        pi.set_servo_pulsewidth(SERVO_PIN_2, CCW_PULSE_WIDTH)  # Servo 2 to -90 degrees
+        sleep(2)
+
+        # Move Servo 1 to center (0 degrees), Servo 2 to center (0 degrees)
+        pi.set_servo_pulsewidth(SERVO_PIN_1, CENTER_PULSE_WIDTH)  # Servo 1 to 0 degrees
+        pi.set_servo_pulsewidth(SERVO_PIN_2, CENTER_PULSE_WIDTH)  # Servo 2 to 0 degrees
+        sleep(2)
+
+        # Move Servo 1 counterclockwise to -90 degrees, Servo 2 clockwise to +90 degrees
+        pi.set_servo_pulsewidth(SERVO_PIN_1, CCW_PULSE_WIDTH)  # Servo 1 to -90 degrees
+        pi.set_servo_pulsewidth(SERVO_PIN_2, CW_PULSE_WIDTH)  # Servo 2 to +90 degrees
+        sleep(2)
+
+except KeyboardInterrupt:
+    # Turn off both servos
+    pi.set_servo_pulsewidth(SERVO_PIN_1, 0)
+    pi.set_servo_pulsewidth(SERVO_PIN_2, 0)
+    pi.stop()
+    print("Servos turned off and pigpio stopped.")
+
+# Stop pigpio
+pi.stop()

@@ -1,0 +1,94 @@
+line following
+
+# Import libraries
+import RPi.GPIO as gpio
+
+# Set pin mapping to BOARD
+gpio. setmode(gpio.BOARD)
+
+# Turn off channel warning messages
+gpio.setwarnings(False)
+
+# Set GPIO pins as output for motors
+motor_pins = {
+    'left_front': 11,
+    'left_back': 13,
+    'right_front' : 15,
+    'right_back': 19
+}
+
+for pin in motor_pins.values():
+    gpio.setup(pin, gpio.OUT)
+    
+# Set GPIO pins as inputs for sensors
+leftSensor = 7
+centerSensor = 8
+rightSensor = 10
+
+gpio.setup(leftSensor, gpio.IN)
+gpio.setup(centerSensor, gpio.IN)
+gpio.setup(rightSensor, gpio.IN)
+
+# Functions to control motors
+def motorOn(motor):
+    gpio.output(motor_pins[motor], 1)
+
+def motorOff(motor):
+    gpio.output(motor_pins[motor], 0)
+
+# Turn off all motors
+def stopAll():
+    for pin in motor_pins.values():
+        gpio.output(pin, 0)
+
+# Main program loop
+stopAll()   # Make sure all pins are set to off
+
+try:
+    while True:
+        left = gpio.input(leftSensor)
+        center = gpio.input(centerSensor)
+        right = gpio.input(rightSensor)
+        
+        if left == 0 and center == 0 and right == 0:
+            # All sensors are off - stop all motors
+            stopAll()
+        
+        elif center == 1 and (left == 0 or right == 0):
+            # Only center sensor is on - move forward
+            motorOn('left_front')
+            motorOn('left_back')
+            motorOn('right_front')
+            motorOn('right_back')
+        
+        elif left == 1 and center == 0 and right == 0:
+            # Left sensor is on - pivot left
+            motorOff('left_front')
+            motorOff('left_back')
+            motorOn('right_front')
+            motorOn('right_back')
+        
+        elif right == 1 and center == 0 and left == 0:
+            # Right sensor is on - pivot right
+            motorOn('left_front')
+            motorOn('left_back')
+            motorOff('right_front')
+            motorOff('right_back')
+        
+        elif left == 1 and center == 1 and right == 0:
+            # Left and center sensors are on - slight left
+            motorOn('left_front')
+            motorOn('left_back')
+            motorOff('right_front')
+            motorOn('right_back')
+        
+        elif right == 1 and center == 1 and left == 0:
+            # Right and center sensors are on - slight right
+            motorOff('left_front')
+            motorOn('left_back')
+            motorOn('right_front')
+            motorOn('right_back')
+
+except KeyboardInterrupt:
+    stopAll()
+    gpio.cleanup()

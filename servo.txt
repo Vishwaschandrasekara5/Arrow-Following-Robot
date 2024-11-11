@@ -1,0 +1,32 @@
+import pigpio
+from time import sleep
+
+# Set up pigpio
+pi = pigpio.pi()
+if not pi.connected:
+    exit()
+
+# Define servo pin
+SERVO_PIN = 12
+
+# Set servo parameters
+MIN_PULSE_WIDTH = 600  # in microseconds
+MAX_PULSE_WIDTH = 2300  # in microseconds
+
+pi.set_mode(SERVO_PIN, pigpio.OUTPUT)
+
+try:
+    while True:
+        pi.set_servo_pulsewidth(SERVO_PIN, (MIN_PULSE_WIDTH + MAX_PULSE_WIDTH) / 2)  # 90 degrees
+        sleep(2)
+        pi.set_servo_pulsewidth(SERVO_PIN, MIN_PULSE_WIDTH)  # 0 degrees
+        sleep(2)
+        pi.set_servo_pulsewidth(SERVO_PIN, (MAX_PULSE_WIDTH + MIN_PULSE_WIDTH) / 2)  # -90 degrees
+        sleep(2)
+except KeyboardInterrupt:
+    pi.set_servo_pulsewidth(SERVO_PIN, 0)  # Turn off servo
+    pi.stop()
+
+
+
+
